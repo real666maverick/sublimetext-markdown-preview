@@ -800,20 +800,16 @@ class Compiler(object):
 class GithubCompiler(Compiler):
     default_css = "github.css"
 
-    def curl_convert(self, data):
+    def curl_convert(self, data, fname='/tmp/.sl-gh_md.preview'):
         try:
             import subprocess
 
-            # It looks like the text does NOT need to be escaped and
-            # surrounded with double quotes.
-            # Tested in ubuntu 13.10, python 2.7.5+
-            shell_safe_json = data.decode('utf-8')
             curl_args = [
                 'curl',
                 '-H',
                 'Content-Type: application/json',
                 '-d',
-                shell_safe_json,
+                '@%s' % fname,
                 'https://api.github.com/markdown'
             ]
 
@@ -823,6 +819,9 @@ class GithubCompiler(Compiler):
                     '-u',
                     github_oauth_token
                 ]
+
+            with open(fname, 'w') as tfile:
+                tfile.write(data.decode('utf-8'))
 
             markdown_html = subprocess.Popen(curl_args, stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
             return markdown_html
